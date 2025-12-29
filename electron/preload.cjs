@@ -11,11 +11,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     node: process.versions.node,
     chrome: process.versions.chrome,
     electron: process.versions.electron
-  }
+  },
+
+  // Notification API
+  notify: (title, body, options = {}) =>
+    ipcRenderer.invoke('notify', { title, body, options })
 
   // Future IPC methods will go here, for example:
   // startSession: (data) => ipcRenderer.invoke('session:start', data),
   // stopSession: () => ipcRenderer.invoke('session:stop'),
   // saveToDatabase: (data) => ipcRenderer.invoke('db:save', data),
-  // notify: (title, body) => ipcRenderer.invoke('notify', { title, body })
 });

@@ -1,10 +1,13 @@
-import { useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import CameraFeed from './components/CameraFeed'
+import SessionTypeModal from './components/SessionTypeModal'
 import useSessionTracking from './hooks/useSessionTracking'
 import { formatDuration, formatSessionTime } from './utils/timeUtils'
+import { SESSION_TYPES } from './constants/sessionTypes'
 
 function App() {
   const sessionTracking = useSessionTracking()
+  const [showSessionModal, setShowSessionModal] = useState(false)
 
   // Handle detection updates from CameraFeed
   // Using useCallback to ensure we always have the latest sessionActive value
@@ -14,8 +17,23 @@ function App() {
     }
   }, [sessionTracking.sessionActive, sessionTracking.updateFocusState])
 
+  // Handle start/stop session
+  const handleStartSession = () => {
+    if (!sessionTracking.sessionActive) {
+      setShowSessionModal(true)
+    } else {
+      sessionTracking.stopSession()
+    }
+  }
+
+  // Handle session type selection
+  const handleSessionTypeSelected = (sessionConfig) => {
+    setShowSessionModal(false)
+    sessionTracking.startSession(sessionConfig)
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-black to-gray-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 text-white">
       {/* Main Content */}
       <main className="h-screen flex items-center justify-center p-8">
         <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -34,10 +52,25 @@ function App() {
               <div className="backdrop-blur-xl bg-gray-900/40 rounded-3xl p-8 border border-gray-700/50 shadow-2xl relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 pointer-events-none"></div>
                 <div className="relative">
-                  <div className="text-xs font-medium tracking-wider uppercase text-gray-400 mb-3">Session Time</div>
+                  {sessionTracking.sessionType && (
+                    <div className="text-xs font-medium tracking-wider uppercase text-gray-400 mb-2">
+                      {SESSION_TYPES[sessionTracking.sessionType]?.name || sessionTracking.sessionType} Session
+                    </div>
+                  )}
+                  <div className="text-xs font-medium tracking-wider uppercase text-gray-400 mb-3">Time Remaining</div>
                   <div className="text-6xl font-bold tabular-nums bg-gradient-to-r from-emerald-300 to-cyan-300 bg-clip-text text-transparent">
-                    {formatSessionTime(sessionTracking.sessionDuration)}
+                    {formatSessionTime(sessionTracking.remainingTime || 0)}
                   </div>
+                  {sessionTracking.targetDuration > 0 && (
+                    <div className="mt-4 h-2 bg-gray-800 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-500"
+                        style={{
+                          width: `${((sessionTracking.targetDuration - sessionTracking.remainingTime) / sessionTracking.targetDuration) * 100}%`
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -90,7 +123,7 @@ function App() {
 
             {/* Control Button */}
             <button
-              onClick={sessionTracking.sessionActive ? sessionTracking.stopSession : sessionTracking.startSession}
+              onClick={handleStartSession}
               className={`w-full py-4 px-6 rounded-2xl font-semibold text-sm tracking-wide uppercase transition-all duration-300 shadow-xl ${
                 sessionTracking.sessionActive
                   ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 hover:shadow-red-500/50 text-white'
@@ -102,6 +135,14 @@ function App() {
           </div>
         </div>
       </main>
+
+      {/* Session Type Modal */}
+      {showSessionModal && (
+        <SessionTypeModal
+          onSelect={handleSessionTypeSelected}
+          onCancel={() => setShowSessionModal(false)}
+        />
+      )}
     </div>
   )
 }

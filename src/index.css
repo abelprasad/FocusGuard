@@ -10,7 +10,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #000000;
+  background-color: #1e293b;
   color: #ffffff;
 }
 
@@ -18,5 +18,5 @@ body {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background-color: #000000;
+  background-color: #1e293b;
 }

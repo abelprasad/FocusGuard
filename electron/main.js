@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session } = require('electron');
+const { app, BrowserWindow, session, ipcMain, Notification } = require('electron');
 const path = require('path');
 
 // Determine if we're in development or production
@@ -41,6 +41,31 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 }
+
+// IPC Handlers
+ipcMain.handle('notify', async (event, { title, body, options = {} }) => {
+  try {
+    // Check if notifications are supported
+    if (!Notification.isSupported()) {
+      console.error('Notifications not supported');
+      return { success: false, error: 'Not supported' };
+    }
+
+    const notification = new Notification({
+      title,
+      body,
+      icon: options.icon,
+      silent: options.silent || false
+    });
+
+    notification.show();
+
+    return { success: true };
+  } catch (error) {
+    console.error('Notification error:', error);
+    return { success: false, error: error.message };
+  }
+});
 
 // App lifecycle events
 app.whenReady().then(() => {
