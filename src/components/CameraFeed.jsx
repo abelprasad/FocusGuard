@@ -245,9 +245,12 @@ export default function CameraFeed({ onDetectionUpdate }) {
     <div className="camera-feed">
       {/* Video + Canvas Container */}
       <div
-        className="relative bg-gray-950 rounded-lg overflow-hidden"
+        className="relative overflow-hidden"
         style={{
-          display: isStreaming ? 'grid' : 'block'
+          display: isStreaming ? 'grid' : 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '400px'
         }}
       >
         {/* Video Element */}
@@ -256,12 +259,9 @@ export default function CameraFeed({ onDetectionUpdate }) {
           autoPlay
           playsInline
           muted
-          className={`rounded-lg ${
-            isStreaming ? 'block' : 'hidden'
-          }`}
+          className={isStreaming ? 'block' : 'hidden'}
           style={{
             gridArea: isStreaming ? '1 / 1' : undefined,
-            maxWidth: '672px',
             width: '100%'
           }}
         />
@@ -278,121 +278,34 @@ export default function CameraFeed({ onDetectionUpdate }) {
 
         {/* Placeholder when camera is off */}
         {!isStreaming && !error && (
-          <div className="flex items-center justify-center h-96 bg-gray-800 rounded-lg">
-            <div className="text-center">
-              <svg
-                className="mx-auto h-16 w-16 text-gray-500 mb-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                />
-              </svg>
-              <p className="text-gray-400">Camera is off</p>
-              {detectorReady && (
-                <p className="text-xs text-focus-green mt-2">✓ Face detection ready</p>
-              )}
-            </div>
+          <div className="text-center">
+            <button
+              onClick={startCamera}
+              disabled={!detectorReady}
+              className="text-sm font-light tracking-wide uppercase transition-colors text-white hover:text-gray-400 disabled:text-gray-600 disabled:cursor-not-allowed"
+            >
+              {detectorReady ? 'Enable Camera' : 'Loading...'}
+            </button>
           </div>
-        )}
-      </div>
-
-      {/* Controls */}
-      <div className="controls mt-4 space-x-4">
-        {!isStreaming ? (
-          <button
-            onClick={startCamera}
-            disabled={!detectorReady}
-            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-              detectorReady
-                ? 'bg-focus-green text-white hover:bg-green-600'
-                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            {detectorReady ? 'Start Camera' : 'Loading detector...'}
-          </button>
-        ) : (
-          <button
-            onClick={stopCamera}
-            className="bg-focus-red text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors font-medium"
-          >
-            Stop Camera
-          </button>
         )}
       </div>
 
       {/* Error Display */}
       {error && (
-        <div className="error mt-4 p-4 bg-red-900/30 border border-red-700 text-red-300 rounded-lg">
-          <div className="flex items-start">
-            <svg
-              className="h-5 w-5 text-red-400 mt-0.5 mr-3"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <div>
-              <p className="font-medium">Error</p>
-              <p className="text-sm mt-1">{error}</p>
-            </div>
-          </div>
+        <div className="mt-6 text-sm text-gray-500 text-center">
+          {error}
         </div>
       )}
 
-      {/* Detection Results Display */}
-      {isStreaming && detectorReady && (
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          {/* Face Detected Status */}
-          <div className={`p-3 rounded-lg border ${
-            detectionResults.faceDetected
-              ? 'bg-green-900/20 border-focus-green'
-              : 'bg-gray-800 border-gray-700'
-          }`}>
-            <div className="text-xs text-gray-400 mb-1">Presence</div>
-            <div className={`font-semibold ${
-              detectionResults.faceDetected ? 'text-focus-green' : 'text-gray-500'
-            }`}>
-              {detectionResults.faceDetected ? 'Detected' : 'Not Detected'}
-            </div>
-          </div>
-
-          {/* Confidence Score */}
-          <div className="p-3 rounded-lg bg-gray-800 border border-gray-700">
-            <div className="text-xs text-gray-400 mb-1">Confidence</div>
-            <div className="font-semibold text-focus-blue">
-              {Math.round(detectionResults.confidence * 100)}%
-            </div>
-          </div>
-
-          {/* Face Count */}
-          <div className="p-3 rounded-lg bg-gray-800 border border-gray-700">
-            <div className="text-xs text-gray-400 mb-1">Faces</div>
-            <div className="font-semibold text-white">
-              {detectionResults.faces.length}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Status Indicator */}
+      {/* Minimal Camera Control */}
       {isStreaming && (
-        <div className="status mt-3 flex items-center text-focus-green">
-          <div className="h-2 w-2 bg-focus-green rounded-full mr-2 animate-pulse"></div>
-          <span className="font-medium text-sm">
-            Camera Active • Face Detection Running
-          </span>
+        <div className="mt-6 text-center">
+          <button
+            onClick={stopCamera}
+            className="text-xs font-light tracking-wide uppercase transition-colors text-gray-600 hover:text-gray-400"
+          >
+            Disable Camera
+          </button>
         </div>
       )}
     </div>

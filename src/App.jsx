@@ -15,151 +15,90 @@ function App() {
   }, [sessionTracking.sessionActive, sessionTracking.updateFocusState])
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      {/* Header */}
-      <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-focus-blue">
-            FocusGuard 🎯
-          </h1>
-          <div className="text-sm text-gray-400">
-            AI-Powered Productivity Monitor
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-black to-gray-900 text-white">
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="h-screen flex items-center justify-center p-8">
+        <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left: Camera Feed */}
           <div className="lg:col-span-2">
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Live Feed</h2>
+            <div className="relative backdrop-blur-xl bg-gray-900/40 rounded-3xl p-6 border border-gray-700/50 shadow-2xl overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 pointer-events-none"></div>
               <CameraFeed onDetectionUpdate={handleDetectionUpdate} />
             </div>
           </div>
 
-          {/* Right: Controls and Stats */}
-          <div className="space-y-6">
-            {/* Session Control */}
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Session Control</h3>
-
-              {/* Session Timer */}
-              {sessionTracking.sessionActive && (
-                <div className="text-center p-4 bg-gray-900 rounded-lg mb-4">
-                  <div className="text-sm text-gray-400 mb-1">Session Time</div>
-                  <div className="text-3xl font-bold text-focus-blue tabular-nums">
+          {/* Right: Stats & Controls */}
+          <div className="flex flex-col gap-6">
+            {/* Session Timer Card */}
+            {sessionTracking.sessionActive && (
+              <div className="backdrop-blur-xl bg-gray-900/40 rounded-3xl p-8 border border-gray-700/50 shadow-2xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 pointer-events-none"></div>
+                <div className="relative">
+                  <div className="text-xs font-medium tracking-wider uppercase text-gray-400 mb-3">Session Time</div>
+                  <div className="text-6xl font-bold tabular-nums bg-gradient-to-r from-emerald-300 to-cyan-300 bg-clip-text text-transparent">
                     {formatSessionTime(sessionTracking.sessionDuration)}
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Start/Stop Button */}
-              <button
-                onClick={sessionTracking.sessionActive ? sessionTracking.stopSession : sessionTracking.startSession}
-                className={`w-full py-3 rounded-lg font-semibold transition-colors ${
-                  sessionTracking.sessionActive
-                    ? 'bg-focus-red hover:bg-red-600'
-                    : 'bg-focus-green hover:bg-green-600'
-                }`}
-              >
-                {sessionTracking.sessionActive ? 'End Session' : 'Start Session'}
-              </button>
+            {/* Stats Card */}
+            {sessionTracking.sessionActive && (
+              <div className="backdrop-blur-xl bg-gray-900/40 rounded-3xl p-8 border border-gray-700/50 shadow-2xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 pointer-events-none"></div>
+                <div className="relative space-y-6">
+                  <h3 className="text-xs font-medium tracking-wider uppercase text-gray-400 mb-4">Performance</h3>
 
-              {sessionTracking.sessionActive && (
-                <div className="mt-3 text-sm text-center">
-                  <div className="flex items-center justify-center text-focus-green">
-                    <div className="h-2 w-2 bg-focus-green rounded-full mr-2 animate-pulse"></div>
-                    <span>Session in progress</span>
+                  {/* Metrics Grid */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-gray-800/60 rounded-2xl p-4 border border-gray-700/50">
+                      <div className="text-xs text-gray-400 mb-2">Focused</div>
+                      <div className="text-2xl font-bold text-emerald-400">{formatDuration(sessionTracking.focusedTime)}</div>
+                    </div>
+                    <div className="bg-gray-800/60 rounded-2xl p-4 border border-gray-700/50">
+                      <div className="text-xs text-gray-400 mb-2">Score</div>
+                      <div className="text-2xl font-bold bg-gradient-to-r from-violet-300 to-fuchsia-300 bg-clip-text text-transparent">
+                        {Math.round(sessionTracking.focusScore)}%
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
 
-            {/* Session Stats */}
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Session Stats</h3>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                <div className="bg-gray-900 rounded-lg p-3 text-center">
-                  <div className="text-xs text-gray-400 mb-1">Focused</div>
-                  <div className="text-lg font-semibold text-focus-green">
-                    {formatDuration(sessionTracking.focusedTime)}
-                  </div>
-                </div>
-                <div className="bg-gray-900 rounded-lg p-3 text-center">
-                  <div className="text-xs text-gray-400 mb-1">Away</div>
-                  <div className="text-lg font-semibold text-gray-400">
-                    {formatDuration(sessionTracking.awayTime)}
-                  </div>
-                </div>
-                <div className="bg-gray-900 rounded-lg p-3 text-center">
-                  <div className="text-xs text-gray-400 mb-1">Score</div>
-                  <div className="text-lg font-semibold text-focus-blue">
-                    {Math.round(sessionTracking.focusScore)}%
-                  </div>
+                  {/* Progress Bar */}
+                  {sessionTracking.sessionDuration > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-gray-400">
+                        <span>Focus Progress</span>
+                        <span>{Math.round(sessionTracking.focusScore)}%</span>
+                      </div>
+                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full flex">
+                          <div
+                            className="bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-500 ease-out"
+                            style={{ width: `${(sessionTracking.focusedTime / sessionTracking.sessionDuration) * 100}%` }}
+                          />
+                          <div
+                            className="bg-gradient-to-r from-orange-500 to-red-500 transition-all duration-500 ease-out"
+                            style={{ width: `${(sessionTracking.distractedTime / sessionTracking.sessionDuration) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
+            )}
 
-              {/* Time Breakdown Bar */}
-              {sessionTracking.sessionActive && sessionTracking.sessionDuration > 0 && (
-                <div>
-                  <div className="text-xs text-gray-400 mb-2">Time Breakdown</div>
-                  <div className="h-3 bg-gray-700 rounded-full overflow-hidden flex">
-                    <div
-                      className="bg-focus-green transition-all duration-300"
-                      style={{ width: `${(sessionTracking.focusedTime / sessionTracking.sessionDuration) * 100}%` }}
-                      title={`Focused: ${formatDuration(sessionTracking.focusedTime)}`}
-                    />
-                    <div
-                      className="bg-focus-red transition-all duration-300"
-                      style={{ width: `${(sessionTracking.distractedTime / sessionTracking.sessionDuration) * 100}%` }}
-                      title={`Distracted: ${formatDuration(sessionTracking.distractedTime)}`}
-                    />
-                    <div
-                      className="bg-gray-500 transition-all duration-300"
-                      style={{ width: `${(sessionTracking.awayTime / sessionTracking.sessionDuration) * 100}%` }}
-                      title={`Away: ${formatDuration(sessionTracking.awayTime)}`}
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-400 mt-2">
-                    <span className="flex items-center">
-                      <span className="inline-block w-2 h-2 bg-focus-green rounded-full mr-1"></span>
-                      Focused
-                    </span>
-                    <span className="flex items-center">
-                      <span className="inline-block w-2 h-2 bg-focus-red rounded-full mr-1"></span>
-                      Distracted
-                    </span>
-                    <span className="flex items-center">
-                      <span className="inline-block w-2 h-2 bg-gray-500 rounded-full mr-1"></span>
-                      Away
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Quick Info */}
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Quick Tips</h3>
-              <ul className="text-sm text-gray-400 space-y-2">
-                <li className="flex items-start">
-                  <span className="text-focus-green mr-2">•</span>
-                  <span>Start camera to begin monitoring</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-focus-blue mr-2">•</span>
-                  <span>Good posture keeps you focused</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-focus-red mr-2">•</span>
-                  <span>Take breaks every 50 minutes</span>
-                </li>
-              </ul>
-            </div>
+            {/* Control Button */}
+            <button
+              onClick={sessionTracking.sessionActive ? sessionTracking.stopSession : sessionTracking.startSession}
+              className={`w-full py-4 px-6 rounded-2xl font-semibold text-sm tracking-wide uppercase transition-all duration-300 shadow-xl ${
+                sessionTracking.sessionActive
+                  ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 hover:shadow-red-500/50 text-white'
+                  : 'bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 hover:shadow-emerald-500/50 text-white'
+              }`}
+            >
+              {sessionTracking.sessionActive ? 'End Session' : 'Start Session'}
+            </button>
           </div>
         </div>
       </main>
