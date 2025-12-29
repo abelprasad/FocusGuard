@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { FaceDetector } from '../utils/faceDetector';
 
-export default function CameraFeed() {
+export default function CameraFeed({ onDetectionUpdate }) {
   // Refs for video and canvas elements
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -156,11 +156,18 @@ export default function CameraFeed() {
 
       // Update state and draw if we got new results
       if (results) {
-        setDetectionResults({
+        const detectionData = {
           faceDetected: results.faceDetected,
           faces: results.faces,
           confidence: results.faces[0]?.confidence || 0
-        });
+        };
+
+        setDetectionResults(detectionData);
+
+        // Report to parent component for session tracking
+        if (onDetectionUpdate) {
+          onDetectionUpdate(detectionData);
+        }
 
         drawDetections(results, canvas, video);
       }

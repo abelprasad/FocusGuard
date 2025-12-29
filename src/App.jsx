@@ -1,8 +1,18 @@
-import { useState } from 'react'
+import { useCallback } from 'react'
 import CameraFeed from './components/CameraFeed'
+import useSessionTracking from './hooks/useSessionTracking'
+import { formatDuration, formatSessionTime } from './utils/timeUtils'
 
 function App() {
-  const [sessionActive, setSessionActive] = useState(false)
+  const sessionTracking = useSessionTracking()
+
+  // Handle detection updates from CameraFeed
+  // Using useCallback to ensure we always have the latest sessionActive value
+  const handleDetectionUpdate = useCallback((detectionResults) => {
+    if (sessionTracking.sessionActive) {
+      sessionTracking.updateFocusState(detectionResults)
+    }
+  }, [sessionTracking.sessionActive, sessionTracking.updateFocusState])
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -25,7 +35,7 @@ function App() {
           <div className="lg:col-span-2">
             <div className="bg-gray-800 rounded-lg p-6">
               <h2 className="text-xl font-semibold mb-4">Live Feed</h2>
-              <CameraFeed />
+              <CameraFeed onDetectionUpdate={handleDetectionUpdate} />
             </div>
           </div>
 
@@ -34,17 +44,30 @@ function App() {
             {/* Session Control */}
             <div className="bg-gray-800 rounded-lg p-6">
               <h3 className="text-lg font-semibold mb-4">Session Control</h3>
+
+              {/* Session Timer */}
+              {sessionTracking.sessionActive && (
+                <div className="text-center p-4 bg-gray-900 rounded-lg mb-4">
+                  <div className="text-sm text-gray-400 mb-1">Session Time</div>
+                  <div className="text-3xl font-bold text-focus-blue tabular-nums">
+                    {formatSessionTime(sessionTracking.sessionDuration)}
+                  </div>
+                </div>
+              )}
+
+              {/* Start/Stop Button */}
               <button
-                onClick={() => setSessionActive(!sessionActive)}
-                className={`w-full py-3 rounded-lg font-medium transition-colors ${
-                  sessionActive
+                onClick={sessionTracking.sessionActive ? sessionTracking.stopSession : sessionTracking.startSession}
+                className={`w-full py-3 rounded-lg font-semibold transition-colors ${
+                  sessionTracking.sessionActive
                     ? 'bg-focus-red hover:bg-red-600'
                     : 'bg-focus-green hover:bg-green-600'
                 }`}
               >
-                {sessionActive ? 'Stop Session' : 'Start Session'}
+                {sessionTracking.sessionActive ? 'End Session' : 'Start Session'}
               </button>
-              {sessionActive && (
+
+              {sessionTracking.sessionActive && (
                 <div className="mt-3 text-sm text-center">
                   <div className="flex items-center justify-center text-focus-green">
                     <div className="h-2 w-2 bg-focus-green rounded-full mr-2 animate-pulse"></div>
@@ -54,23 +77,69 @@ function App() {
               )}
             </div>
 
-            {/* Today's Stats */}
+            {/* Session Stats */}
             <div className="bg-gray-800 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Today's Stats</h3>
-              <div className="space-y-4">
-                <div>
-                  <div className="text-sm text-gray-400 mb-1">Focus Time</div>
-                  <div className="text-3xl font-bold text-focus-green">0m</div>
+              <h3 className="text-lg font-semibold mb-4">Session Stats</h3>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="bg-gray-900 rounded-lg p-3 text-center">
+                  <div className="text-xs text-gray-400 mb-1">Focused</div>
+                  <div className="text-lg font-semibold text-focus-green">
+                    {formatDuration(sessionTracking.focusedTime)}
+                  </div>
                 </div>
-                <div>
-                  <div className="text-sm text-gray-400 mb-1">Breaks Taken</div>
-                  <div className="text-3xl font-bold">0</div>
+                <div className="bg-gray-900 rounded-lg p-3 text-center">
+                  <div className="text-xs text-gray-400 mb-1">Away</div>
+                  <div className="text-lg font-semibold text-gray-400">
+                    {formatDuration(sessionTracking.awayTime)}
+                  </div>
                 </div>
-                <div>
-                  <div className="text-sm text-gray-400 mb-1">Focus Score</div>
-                  <div className="text-3xl font-bold text-focus-blue">--%</div>
+                <div className="bg-gray-900 rounded-lg p-3 text-center">
+                  <div className="text-xs text-gray-400 mb-1">Score</div>
+                  <div className="text-lg font-semibold text-focus-blue">
+                    {Math.round(sessionTracking.focusScore)}%
+                  </div>
                 </div>
               </div>
+
+              {/* Time Breakdown Bar */}
+              {sessionTracking.sessionActive && sessionTracking.sessionDuration > 0 && (
+                <div>
+                  <div className="text-xs text-gray-400 mb-2">Time Breakdown</div>
+                  <div className="h-3 bg-gray-700 rounded-full overflow-hidden flex">
+                    <div
+                      className="bg-focus-green transition-all duration-300"
+                      style={{ width: `${(sessionTracking.focusedTime / sessionTracking.sessionDuration) * 100}%` }}
+                      title={`Focused: ${formatDuration(sessionTracking.focusedTime)}`}
+                    />
+                    <div
+                      className="bg-focus-red transition-all duration-300"
+                      style={{ width: `${(sessionTracking.distractedTime / sessionTracking.sessionDuration) * 100}%` }}
+                      title={`Distracted: ${formatDuration(sessionTracking.distractedTime)}`}
+                    />
+                    <div
+                      className="bg-gray-500 transition-all duration-300"
+                      style={{ width: `${(sessionTracking.awayTime / sessionTracking.sessionDuration) * 100}%` }}
+                      title={`Away: ${formatDuration(sessionTracking.awayTime)}`}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-400 mt-2">
+                    <span className="flex items-center">
+                      <span className="inline-block w-2 h-2 bg-focus-green rounded-full mr-1"></span>
+                      Focused
+                    </span>
+                    <span className="flex items-center">
+                      <span className="inline-block w-2 h-2 bg-focus-red rounded-full mr-1"></span>
+                      Distracted
+                    </span>
+                    <span className="flex items-center">
+                      <span className="inline-block w-2 h-2 bg-gray-500 rounded-full mr-1"></span>
+                      Away
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Quick Info */}
